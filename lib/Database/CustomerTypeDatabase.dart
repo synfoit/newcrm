@@ -1,0 +1,60 @@
+import 'package:newcrm/Model/CustomerType.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+class CustomerTypeDatabase{
+   String path;
+  static const _databaseName = "customertypedata.db";
+  static const _databaseVersion = 1;
+  static const tableName = 'customertypetable';
+
+  CustomerTypeDatabase._privateConstructor();
+  static final CustomerTypeDatabase instance = CustomerTypeDatabase._privateConstructor();
+  // only have a single app-wide reference to the database
+  static Database _database;
+  Future get database async {
+    if (_database != null) return _database;
+    // lazily instantiate the db the first time it is accessed
+    _database = await _initDatabase();
+    return _database;
+  }
+  _initDatabase() async {
+    String databasesPath = await getDatabasesPath();
+    String path = join(databasesPath, _databaseName);
+    return await openDatabase(path,
+        version: _databaseVersion, onCreate: _onCreate);
+  }
+  // SQL code to create the database table
+  Future _onCreate(Database db, int version) async {
+    await db.execute(
+      "CREATE TABLE customertypetable(customertype_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, customertype TEXT)",
+    );
+  }
+
+  Future getFileData() async {
+    return getDatabasesPath().then((s) {
+      return path = s;
+    });
+  }
+
+  Future insertcustomertype(String customertype) async {
+
+    Database db = await instance.database;
+    var result = await db.insert(tableName, {'customertype': customertype});
+    return result;
+  }
+
+  Future<List<CustomerType>> getCustomerType() async {
+    Database db = await instance.database;
+    var results  = await db.rawQuery("select customertype from customertypetable");
+    List<CustomerType> customerTypelist=[];
+    if (results.isNotEmpty) {
+       for (int i = 0; i < results.length; i++)
+       {
+         customerTypelist.add(CustomerType.fromJson(results[i]));
+      }
+    }
+    return customerTypelist;
+  }
+
+}
